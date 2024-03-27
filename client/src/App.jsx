@@ -4,6 +4,9 @@ import Users from './Users';
 import Businesses from './Businesses';
 import CreateReview from './CreateReview';
 import Home from './Home';
+import BusinessReview from './BusinessReviews';
+import UserReviews from './UserReviews';
+
 
 function App() {
   const [auth, setAuth] = useState({});
@@ -14,6 +17,18 @@ function App() {
   useEffect(()=> {
     attemptLoginWithToken();
   }, []);
+ 
+  useEffect(()=> {
+    fetch("/api/users").then(res => res.json()).then(json => {
+      setUsers(json);
+    }).catch(ex => console.log("error", ex))
+    fetch("/api/businesses").then(res => res.json()).then(json => {
+      console.log(json);
+      setBusinesses(json);
+    }).catch(ex => console.log("error", ex))
+  }, []);
+
+  
 
   const attemptLoginWithToken = async()=> {
     const token = window.localStorage.getItem('token');
@@ -32,6 +47,28 @@ function App() {
       }
     }
   };
+
+const deleteReview = async(id, userId) => {
+  
+  try { const token = window.localStorage.getItem('token');
+   const response = await fetch(`/api/users/${userId}/reviews/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json', authorization: token
+      }
+
+    });
+    
+    const json = await response.json();
+    console.log(json);
+    
+ }
+ catch(er){
+   console.log(er)
+   
+ }
+  }
+
 
   const authAction = async(credentials, mode)=> {
     const response = await fetch(`/api/auth/${mode}`, {
@@ -82,9 +119,11 @@ function App() {
           />
         } />
         <Route path='/businesses' element={<Businesses businesses={ businesses } />} />
+        <Route path = "/businesses/:id" element = {<BusinessReview auth = {auth} deleteReview = {deleteReview}/>}/>
+        <Route path = "/users/:id" element = {<UserReviews auth = {auth} deleteReview = {deleteReview}/>}/>
         <Route path='/users' element={<Users users={ users}/>} />
         {
-          !!auth.id && <Route path='/createReview' element={<CreateReview />} />
+          !!auth.id && <Route path='/createReview' element={<CreateReview businesses = {businesses} />} />
         }
       </Routes>
     </>
